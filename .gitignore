@@ -1,0 +1,27 @@
+# =============================================================
+# .gitignore
+# =============================================================
+
+# Variables de entorno 
+
+
+# Dependencias (si en algún momento usas Composer)
+/vendor/
+
+# Logs y cachés
+*.log
+/storage/logs/
+/storage/cache/
+
+# Subidas de usuarios
+/public/uploads/
+
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
