@@ -10,7 +10,6 @@ class AuthMiddleware implements MiddlewareInterface
         $userId = $_SESSION['user_id'] ?? null;
 
         if (!$userId) {
-            // If AJAX, return 401 JSON
             if ($request->isAjax()) {
                 http_response_code(401);
                 header('Content-Type: application/json');
@@ -18,12 +17,10 @@ class AuthMiddleware implements MiddlewareInterface
                 exit;
             }
 
-            // Otherwise redirect to login placeholder
             header('Location: /login');
             exit;
         }
 
-        // user present — continue
         return $next($request);
     }
 }
