@@ -1,0 +1,40 @@
+/* CSS Global*/
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: sans-serif; background: #f5f5f5; color: #333; }
+
+nav { background: #2563eb; padding: 1rem 2rem; }
+nav a { color: white; text-decoration: none; font-weight: bold; margin-right: 1rem; }
+
+.container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+th { background: #2563eb; color: white; padding: .75rem 1rem; text-align: left; }
+td { padding: .75rem 1rem; border-bottom: 1px solid #eee; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f0f7ff; }
+
+.actions { display: flex; gap: .5rem; }
+
+.btn { padding: .4rem .9rem; border-radius: 6px; border: none; cursor: pointer; text-decoration: none; font-size: .9rem; display: inline-block; }
+.btn-primary { background: #2563eb; color: white; }
+.btn-edit    { background: #f59e0b; color: white; }
+.btn-delete  { background: #ef4444; color: white; }
+.btn         { background: #e5e7eb; color: #333; }
+
+.badge { padding: .2rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: bold; }
+.badge-pendiente   { background: #fef3c7; color: #92400e; }
+.badge-aceptada    { background: #d1fae5; color: #065f46; }
+.badge-en_progreso { background: #dbeafe; color: #1e40af; }
+.badge-completada  { background: #e0e7ff; color: #3730a3; }
+.badge-cancelada   { background: #fee2e2; color: #991b1b; }
+
+.form { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1); max-width: 600px; }
+.form label { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; font-weight: 500; }
+.form input, .form textarea, .form select { padding: .5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; }
+.form textarea { height: 100px; resize: vertical; }
+.form-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+
+.error { background: #fee2e2; color: #991b1b; padding: .75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.empty { color: #6b7280; margin-top: 1rem; }
