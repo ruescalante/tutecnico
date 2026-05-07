@@ -1,5 +1,5 @@
 <?php
-require_once BASE_PATH . '/core/Controller.php';
+
 class ErrorController extends Controller
 {
     public function notFound(): void

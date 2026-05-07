@@ -1,3 +1,4 @@
+<?php //$extraCss = '<script src="https://cdn.tailwindcss.com"></script>' ?>
 <div class="container">
     <div class="page-header">
         <h1>Solicitudes</h1>

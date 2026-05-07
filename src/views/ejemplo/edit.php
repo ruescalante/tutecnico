@@ -2,9 +2,6 @@
     <p class="error">No hay datos de la solicitud.</p>
     <?php return; ?>
 <?php endif; ?>
-<?php
-$old = $old ?? [];
-?>
 <div class="container">
     <h1>Editar Solicitud #<?= $solicitud['id'] ?></h1>
 
