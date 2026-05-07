@@ -3,22 +3,24 @@ require_once BASE_PATH . '/models/Ejemplo.php';
 
 class EjemploController extends Controller
 {
-    public function index(): void
+    public function index(): void  //Pagina Principal de ejemplo, lista solicitudes
     {
-        $this->render('ejemplo/index', [
+        //Se pone el nombre de la vista sin la extension .php. carpetas/archivo dentro de views.
+        //Si queremos renderizar views/ejemplo/index.php, ponemos 'ejemplo/index'
+        $this->render('ejemplo/index', [   
             'solicitudes' => Ejemplo::all(),
             'pageTitle'   => 'TuTecnico - Solicitudes',
         ]);
     }
 
-    public function create(): void
+    public function create(): void  //Formulario para crear nueva solicitud
     {
         $this->render('ejemplo/create', [
             'pageTitle' => 'TuTecnico - Nueva Solicitud',
         ]);
     }
 
-    public function store(Request $request): void
+    public function store(Request $request): void //Procesa el formulario de creación de solicitud
     {
         $input = sanitize_array($request->all());
 
@@ -39,7 +41,7 @@ class EjemploController extends Controller
         exit;
     }
 
-    public function edit(Request $request): void
+    public function edit(Request $request): void  //Formulario para editar una solicitud existente
     {
         $id = (int) $request->input('id', 0);
         $solicitud = Ejemplo::find($id);
@@ -55,7 +57,7 @@ class EjemploController extends Controller
         ]);
     }
 
-    public function update(Request $request): void
+    public function update(Request $request): void //Procesa el formulario de edición de solicitud
     {
         $input = sanitize_array($request->all());
         $id = (int) ($input['id'] ?? 0);
@@ -78,7 +80,7 @@ class EjemploController extends Controller
         exit;
     }
 
-    public function destroy(Request $request): void
+    public function destroy(Request $request): void  //Procesa la eliminación de una solicitud
     {
         $id = (int) ($request->input('id') ?? 0);
         Ejemplo::delete($id);
