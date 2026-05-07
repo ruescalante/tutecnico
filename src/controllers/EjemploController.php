@@ -1,9 +1,5 @@
 <?php
 require_once BASE_PATH . '/models/Ejemplo.php';
-require_once BASE_PATH . '/core/Controller.php';
-require_once BASE_PATH . '/core/Request.php';
-require_once BASE_PATH . '/validators/Validator.php';
-require_once BASE_PATH . '/helpers/sanitize.php';
 
 class EjemploController extends Controller
 {

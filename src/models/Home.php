@@ -1,5 +1,2 @@
 <?php
-class Home extends Model
-{
-
-}
+class Home extends Model {}

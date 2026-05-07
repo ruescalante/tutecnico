@@ -4,11 +4,13 @@ define('BASE_PATH', dirname(__DIR__));
 require_once BASE_PATH . '/config/database.php';
 require_once BASE_PATH . '/core/Router.php';
 require_once BASE_PATH . '/core/Model.php';
+require_once BASE_PATH . '/core/Controller.php';
 require_once BASE_PATH . '/core/Request.php';
 require_once BASE_PATH . '/core/ValidationException.php';
 require_once BASE_PATH . '/validators/Validator.php';
 require_once BASE_PATH . '/helpers/sanitize.php';
 require_once BASE_PATH . '/core/MiddlewareInterface.php';
+require_once BASE_PATH . '/controllers/ErrorController.php';
 
 $router = new Router();
 
@@ -41,6 +43,5 @@ try {
 } catch (Throwable $e) {
     error_log($e->getMessage());
     http_response_code(500);
-    require_once BASE_PATH . '/controllers/ErrorController.php';
     (new ErrorController())->serverError();
 }
