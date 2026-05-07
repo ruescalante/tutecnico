@@ -27,9 +27,9 @@ class EjemploController extends Controller
         $input = sanitize_array($request->all());
 
         Validator::validate($input, [
-            'titulo' => 'required',
-            'descripcion' => 'required',
-            'direccion' => 'required',
+            'titulo' => 'required|min:5|max:120',
+            'descripcion' => 'required|min:10|max:1000',
+            'direccion' => 'required|min:5|max:255',
         ]);
 
         Ejemplo::create([
@@ -66,9 +66,9 @@ class EjemploController extends Controller
         $input['estado'] = $input['estado'] ?? 'pendiente';
 
         Validator::validate($input, [
-            'titulo' => 'required',
-            'descripcion' => 'required',
-            'direccion' => 'required',
+            'titulo' => 'required|min:5|max:120',
+            'descripcion' => 'required|min:10|max:1000',
+            'direccion' => 'required|min:5|max:255',
         ]);
 
         Ejemplo::update($id, [

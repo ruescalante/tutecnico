@@ -1,5 +1,5 @@
 <?php
-require_once BASE_PATH . '/exceptions/ValidationException.php';
+require_once BASE_PATH . '/core/ValidationException.php';
 
 class Validator
 {
