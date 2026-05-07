@@ -1,4 +1,4 @@
-# MiTecnico
+# TuTecnico
 
 Aplicación web en PHP con una estructura MVC ligera para gestionar solicitudes técnicas. El proyecto usa rutas propias, controladores, modelos, vistas y un validador centralizado para formularios.
 
@@ -240,10 +240,88 @@ Servicios:
 Comandos útiles:
 
 ```bash
-docker-compose up -d
-docker-compose down
-docker-compose logs -f php
+docker-compose up -d --build
+docker-compose down -v
+docker-compose exec -w /var/www/html php php src/database/migrate.php --seed
 ```
+
+## Ejecutar sin Docker
+
+Si prefieres correr el proyecto de forma manual, necesitas tener instalado lo siguiente:
+
+- **PHP 8.0+**
+- **Extensiones PHP**:
+    - `pdo`
+    - `pdo_mysql`
+    - `mbstring`
+    - `openssl`
+    - `json`
+- **MySQL 8.0+** o MariaDB
+- **Apache 2.4** con `mod_rewrite` habilitado, o cualquier servidor web que apunte a `src/public`
+
+### 1. Crear la base de datos
+
+Primero crea una base de datos vacía, por ejemplo `tutecnico`.
+
+Ejemplo desde MySQL:
+
+```sql
+CREATE DATABASE tutecnico CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON tutecnico.* TO 'admin'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### 2. Configurar el archivo `.env`
+
+Asegúrate de que las credenciales coincidan con tu entorno local:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=tutecnico
+DB_USER=admin
+DB_PASS=admin
+DB_ROOT_PASS=root
+```
+
+### 3. Ejecutar migraciones y seeds
+
+El proyecto incluye un script CLI en `src/database/migrate.php` que lee los archivos SQL y los ejecuta usando PDO.
+
+Ejecuta:
+
+```bash
+php src/database/migrate.php --seed
+```
+
+Eso hace dos cosas:
+
+- Ejecuta `src/database/migrations.sql` para crear la estructura de tablas.
+- Si usas `--seed`, también ejecuta `src/database/seeds.sql` para cargar datos iniciales.
+
+### 4. Levantar el proyecto localmente
+
+Si usas Apache, apunta el document root a `src/public`.
+
+Si usas el servidor embebido de PHP para pruebas rápidas:
+
+```bash
+php -S localhost:8000 -t src/public
+```
+
+Luego abre:
+
+- `http://localhost:8000`
+
+### 5. Verificar conexión a la base de datos
+
+La conexión se define en `src/config/database.php` con `PDO`. Si falla, revisa:
+
+- que `pdo_mysql` esté habilitado
+- que el usuario y contraseña existan
+- que la base de datos `tutecnico` ya esté creada
+- que el host y puerto coincidan con tu servidor MySQL
 
 ## Base de datos
 
