@@ -1,6 +1,9 @@
 <?php
 require_once BASE_PATH . '/models/Ejemplo.php';
 require_once BASE_PATH . '/core/Controller.php';
+require_once BASE_PATH . '/core/Request.php';
+require_once BASE_PATH . '/validators/Validator.php';
+require_once BASE_PATH . '/helpers/sanitize.php';
 
 class EjemploController extends Controller
 {
@@ -19,35 +22,30 @@ class EjemploController extends Controller
         ]);
     }
 
-    public function store(): void
+    public function store(Request $request): void
     {
-        $titulo      = trim($_POST['titulo'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $direccion   = trim($_POST['direccion'] ?? '');
+        $input = sanitize_array($request->all());
 
-        if (empty($titulo) || empty($descripcion) || empty($direccion)) {
-            $error = 'Todos los campos son obligatorios';
-            $this->render('ejemplo/create', [
-                'pageTitle' => 'TuTecnico - Nueva Solicitud',
-                'error'     => $error,
-            ]);
-            return;
-        }
+        Validator::validate($input, [
+            'titulo' => 'required',
+            'descripcion' => 'required',
+            'direccion' => 'required',
+        ]);
 
         Ejemplo::create([
             'id_cliente'  => 1, // hardcoded hasta tener auth
-            'titulo'      => $titulo,
-            'descripcion' => $descripcion,
-            'direccion'   => $direccion,
+            'titulo'      => $input['titulo'],
+            'descripcion' => $input['descripcion'],
+            'direccion'   => $input['direccion'],
         ]);
 
         header('Location: /ejemplo');
         exit;
     }
 
-    public function edit(): void
+    public function edit(Request $request): void
     {
-        $id        = (int) ($_GET['id'] ?? 0);
+        $id = (int) $request->input('id', 0);
         $solicitud = Ejemplo::find($id);
 
         if (!$solicitud) {
@@ -61,39 +59,32 @@ class EjemploController extends Controller
         ]);
     }
 
-    public function update(): void
+    public function update(Request $request): void
     {
-        $id          = (int) ($_POST['id'] ?? 0);
-        $titulo      = trim($_POST['titulo'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $direccion   = trim($_POST['direccion'] ?? '');
-        $estado      = $_POST['estado'] ?? 'pendiente';
+        $input = sanitize_array($request->all());
+        $id = (int) ($input['id'] ?? 0);
+        $input['estado'] = $input['estado'] ?? 'pendiente';
 
-        if (empty($titulo) || empty($descripcion) || empty($direccion)) {
-            $error     = 'Todos los campos son obligatorios';
-            $solicitud = Ejemplo::find($id);
-            $this->render('ejemplo/edit', [
-                'pageTitle' => 'TuTecnico - Editar Solicitud',
-                'solicitud' => $solicitud,
-                'error'     => $error,
-            ]);
-            return;
-        }
+        Validator::validate($input, [
+            'titulo' => 'required',
+            'descripcion' => 'required',
+            'direccion' => 'required',
+        ]);
 
         Ejemplo::update($id, [
-            'titulo'      => $titulo,
-            'descripcion' => $descripcion,
-            'direccion'   => $direccion,
-            'estado'      => $estado,
+            'titulo'      => $input['titulo'],
+            'descripcion' => $input['descripcion'],
+            'direccion'   => $input['direccion'],
+            'estado'      => $input['estado'],
         ]);
 
         header('Location: /ejemplo');
         exit;
     }
 
-    public function destroy(): void
+    public function destroy(Request $request): void
     {
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = (int) ($request->input('id') ?? 0);
         Ejemplo::delete($id);
         header('Location: /ejemplo');
         exit;
