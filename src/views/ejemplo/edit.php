@@ -5,9 +5,8 @@
 <div class="container">
     <h1>Editar Solicitud #<?= $solicitud['id'] ?></h1>
 
-    <form action="/ejemplo/update" method="POST" class="form">
-        <input type="hidden" name="_back_url" value="/ejemplo/edit?id=<?= $solicitud['id'] ?>">
-        <input type="hidden" name="id" value="<?= $solicitud['id'] ?>">
+    <form action="/ejemplo/<?= $solicitud['id'] ?>" method="POST" class="form">
+        <input type="hidden" name="_back_url" value="/ejemplo">
 
         <label>Título
             <input type="text" name="titulo"

@@ -32,10 +32,9 @@
                             </span>
                         </td>
                         <td class="actions">
-                            <a href="/ejemplo/edit?id=<?= $s['id'] ?>" class="btn btn-edit">Editar</a>
-                            <form action="/ejemplo/delete" method="POST"
+                            <a href="/ejemplo/edit/<?= $s['id'] ?>" class="btn btn-edit">Editar</a>
+                            <form action="/ejemplo/delete/<?= $s['id'] ?>" method="POST"
                                 onsubmit="return confirm('¿Eliminar esta solicitud?')">
-                                <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                 <button type="submit" class="btn btn-delete">Eliminar</button>
                             </form>
                         </td>

@@ -43,7 +43,7 @@ class EjemploController extends Controller
 
     public function edit(Request $request): void  //Formulario para editar una solicitud existente
     {
-        $id = (int) $request->input('id', 0);
+        $id = (int) $request->param('id', 0);
         $solicitud = Ejemplo::find($id);
 
         if (!$solicitud) {
@@ -60,7 +60,7 @@ class EjemploController extends Controller
     public function update(Request $request): void //Procesa el formulario de edición de solicitud
     {
         $input = sanitize_array($request->all());
-        $id = (int) ($input['id'] ?? 0);
+        $id = (int) $request->param('id', 0);
         $input['estado'] = $input['estado'] ?? 'pendiente';
 
         Validator::validate($input, [
@@ -82,7 +82,7 @@ class EjemploController extends Controller
 
     public function destroy(Request $request): void  //Procesa la eliminación de una solicitud
     {
-        $id = (int) ($request->input('id') ?? 0);
+        $id = (int) $request->param('id', 0);
         Ejemplo::delete($id);
         header('Location: /ejemplo');
         exit;
