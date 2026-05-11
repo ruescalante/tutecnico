@@ -91,12 +91,14 @@ El archivo principal es `src/public/index.php`. Ahí se cargan los componentes b
 $router->get('/ejemplo', 'EjemploController@index');
 $router->post('/ejemplo', 'EjemploController@store');
 $router->get('/ejemplo/create', 'EjemploController@create');
-$router->get('/ejemplo/edit', 'EjemploController@edit');
-$router->post('/ejemplo/update', 'EjemploController@update');
-$router->post('/ejemplo/delete', 'EjemploController@destroy');
+$router->get('/ejemplo/edit/:id', 'EjemploController@edit');
+$router->post('/ejemplo/:id', 'EjemploController@update');
+$router->post('/ejemplo/delete/:id', 'EjemploController@destroy');
 ```
 
-También soporta middleware por ruta y métodos como `put`, `patch` y `delete`.
+Soporta parámetros dinámicos en URLs (ej. `:id`) y middleware por ruta, además de métodos como `put`, `patch` y `delete`.
+
+Los parámetros dinámicos se acceden en el controlador con `$request->param('id')`.
 
 ### Request
 
