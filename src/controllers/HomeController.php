@@ -6,6 +6,7 @@ class HomeController extends Controller
     public function index(): void
     {
         $this->render('home/index', [
+            'layout' => 'tailwind',
             'pageTitle' => 'TuTecnico - Inicio',
         ]);
     }

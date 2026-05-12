@@ -12,6 +12,7 @@ class AuthController extends Controller
         }
 
         $this->render('auth/login', [
+            'layout' => 'tailwind',
             'pageTitle' => 'TuTecnico - Ingresar',
         ]);
     }
@@ -24,6 +25,7 @@ class AuthController extends Controller
         }
 
         $this->render('auth/register', [
+            'layout' => 'tailwind',
             'pageTitle' => 'TuTecnico - Registro',
         ]);
     }

@@ -58,11 +58,6 @@ CREATE TABLE IF NOT EXISTS `tecnico_perfiles` (
 ALTER TABLE `tecnico_perfiles`
     MODIFY `estado` ENUM('pendiente','activo','suspendido','rechazado') NOT NULL DEFAULT 'pendiente';
 
-ALTER TABLE `tecnico_perfiles`
-    ADD COLUMN `comentario_admin` VARCHAR(500) DEFAULT NULL;
-
-ALTER TABLE `tecnico_perfiles`
-    ADD COLUMN `fecha_estado_cambio` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- -------------------------------------------------------------
 -- 4. tecnico_categorias  (tabla pivote)
