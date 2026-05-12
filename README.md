@@ -248,6 +248,54 @@ Modelo clave de dominio:
 
 - User: autenticacion, gestion de rol, perfil tecnico, estadisticas admin y actualizacion de perfil.
 
+### Por qué un solo `models/User.php` y qué responsabilidades comparte
+
+Por el estado actual del proyecto existe un único modelo `src/models/User.php` que concentra las operaciones relacionadas con cuentas de usuario: autenticación, búsqueda por correo/id, creación de cuentas cliente, gestión de rol, lectura/escritura del perfil técnico y estadísticas administrativas.
+
+Razonamiento actual:
+
+- Dominio reducido y pragmático: al comienzo es más rápido y claro mantener toda la lógica de cuenta en un único lugar cuando el proyecto es pequeño.
+- Evita duplicar queries y responsabilidades cuando varias partes de la app (panel, perfil y administración) necesitan acceder al mismo dato `users` o `tecnico_perfiles`.
+- Facilita cambios rápidos durante la etapa de prototipo sin diseñar una capa de servicios/ repositorios compleja.
+
+Qué responsabilidades tienen los controladores que comparten `User`:
+
+- `DashboardController`:
+    - Propósito: decidir y mostrar el panel correcto según `$_SESSION['role']` y el estado del perfil técnico.
+    - Usa `User` para leer datos necesarios para render (por ejemplo `findById`, `getTechnicianProfileByUserId`).
+    - No debería realizar mutaciones de negocio complejas; su responsabilidad es presentación y navegación.
+
+- `ProfileController`:
+    - Propósito: gestión del propio usuario (ver/editar perfil, postular como técnico).
+    - Usa `User` para leer/actualizar el perfil y para crear/actualizar la fila en `tecnico_perfiles` (a través de métodos como `upsertTechnicianApplication`).
+    - Es la capa que recibe input del usuario y delega la persistencia al modelo.
+
+- `AdminController`:
+    - Propósito: acciones administrativas (listar solicitudes de técnicos, aprobar/rechazar, estadísticas).
+    - Usa `User` para leer aplicaciones y para mutaciones transaccionales (`setTechnicianStatus`, `updateRole`).
+    - Es la capa que realiza cambios de estado que afectan a otros actores del sistema.
+
+Por qué están separados `DashboardController`, `ProfileController` y `AdminController`:
+
+- Principio de responsabilidad única: cada controlador sirve un rol distinto (presentación, acciones del usuario, administración).
+- Permisos y seguridad: `AdminController` está protegido por `AdminMiddleware`; separar facilita auditar y aplicar reglas de acceso.
+- Mantenibilidad: dividir la UI (dashboard) de operaciones mutantes (admin) hace que las pruebas y la lectura sean más directas.
+
+Cuándo considerar cambiar la organizacion (recomendaciones futuras):
+
+- Si `User` crece mucho (muchos métodos y responsabilidades), extraer:
+    - `TechnicianProfile` (nuevo modelo) para encapsular `tecnico_perfiles` y su lógica.
+    - `UserService` o `UserRepository` para coordinar operaciones complejas que involucren varias tablas.
+- Extraer las operaciones administrativas a servicios (`AdminService`) si las acciones empiezan a involucrar lógica de negocio compleja o integraciones externas.
+- Si el area admin crece, trasladar controladores a un namespace/prefijo `src/controllers/admin/` y agrupar rutas con `/dashboard/admin/*`.
+
+Guía práctica para desarrolladores nuevos:
+
+- Antes de añadir un nuevo método a `User`, pregúntate si pertenece al concepto "usuario" (credenciales, perfil, rol) o si enlaza otra entidad (por ejemplo perfil técnico). Si es lo segundo, considera crear `TechnicianProfile`.
+- Mantén las mutaciones (writes) en `AdminController` o en servicios, no en vistas ni en `DashboardController`.
+- Documenta en un comentario al inicio del archivo `src/models/User.php` qué operaciones contiene y por qué; esto facilita futuras refactorizaciones.
+
+
 Caracteristicas actuales:
 
 - PDO con consultas preparadas.
