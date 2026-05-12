@@ -22,6 +22,8 @@ $router->get('/dashboard/tecnico/espera', 'DashboardController@technicianWaiting
 $router->get('/dashboard/admin', 'AdminController@index', ['AuthMiddleware', 'AdminMiddleware']);
 $router->post('/dashboard/admin/tecnicos/:id/estado', 'AdminController@updateTechnicianStatus', ['AuthMiddleware', 'AdminMiddleware']);
 $router->get('/perfil', 'ProfileController@index', ['AuthMiddleware']);
+$router->get('/perfil/editar', 'ProfileController@showEditForm', ['AuthMiddleware']);
+$router->post('/perfil/editar', 'ProfileController@updateProfile', ['AuthMiddleware']);
 $router->get('/perfil/solicitud-tecnico', 'ProfileController@showTechnicianForm', ['AuthMiddleware']);
 $router->post('/perfil/solicitud-tecnico', 'ProfileController@applyTechnician', ['AuthMiddleware']);
 

@@ -19,6 +19,7 @@
                 <strong>Rol actual:</strong>
                 <span class="badge"><?= htmlspecialchars($user['rol'] ?? 'cliente') ?></span>
             </p>
+            <a href="/perfil/editar" class="btn btn-primary">Editar perfil</a>
         </section>
 
         <section class="card">

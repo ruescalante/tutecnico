@@ -155,4 +155,22 @@ class User extends Model
         $row = $stmt->fetch();
         return (int) ($row['total'] ?? 0);
     }
+
+    public static function updateUser(int $userId, array $data): void
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE users
+             SET nombre = :nombre,
+                 correo = :correo,
+                 telefono = :telefono
+             WHERE id = :id'
+        );
+
+        $stmt->execute([
+            'id' => $userId,
+            'nombre' => $data['nombre'],
+            'correo' => $data['correo'],
+            'telefono' => $data['telefono'] ?? null,
+        ]);
+    }
 }

@@ -8,7 +8,7 @@ $role = $_SESSION['role'] ?? null;
     <?php if ($isLogged): ?>
         <a href="/dashboard">Dashboard</a>
         <a href="/perfil">Perfil</a>
-        <a href="/ejemplo">Solicitudes</a>
+        <a href="/ejemplo">Ejemplo</a>
         <?php if ($role === 'admin'): ?>
             <a href="/dashboard/admin">Admin</a>
         <?php endif; ?>

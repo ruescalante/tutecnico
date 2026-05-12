@@ -64,4 +64,40 @@ class ProfileController extends Controller
         header('Location: /dashboard/cliente');
         exit;
     }
+
+    public function showEditForm(): void
+    {
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $user = User::findById($userId);
+
+        $this->render('profile/edit', [
+            'pageTitle' => 'TuTecnico - Editar Perfil',
+            'user' => $user,
+        ]);
+    }
+
+    public function updateProfile(Request $request): void
+    {
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $input = sanitize_array($request->all());
+
+        Validator::validate($input, [
+            'nombre' => 'required|min:3|max:255',
+            'correo' => 'required|email',
+            'telefono' => 'max:20',
+        ]);
+
+        User::updateUser($userId, [
+            'nombre' => $input['nombre'],
+            'correo' => $input['correo'],
+            'telefono' => $input['telefono'] ?? null,
+        ]);
+
+        // Update session with new name
+        $_SESSION['user_name'] = $input['nombre'];
+
+        $_SESSION['success'] = 'Tu perfil fue actualizado correctamente';
+        header('Location: /perfil');
+        exit;
+    }
 }
