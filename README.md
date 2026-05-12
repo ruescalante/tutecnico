@@ -169,6 +169,43 @@ Beneficio:
 
 - El Router puede ejecutar cualquier middleware de forma consistente.
 
+## Carpeta public
+
+### Que es src/public
+
+Esta carpeta es el document root real de la aplicacion. Todo lo que debe ser accesible desde el navegador tiene que vivir aqui o ser servido desde aqui.
+
+Por que existe asi:
+
+- Evita exponer el codigo interno de la app, como core, models, controllers o database.
+- Reduce riesgo de acceso directo a archivos PHP internos.
+- Hace que el servidor web apunte a una sola superficie publica controlada.
+
+### Que debe ir aqui
+
+- index.php como front controller publico.
+- css/ para estilos globales y assets estaticos expuestos.
+- js/ para scripts del cliente y comportamientos de interfaz.
+- favicon/ para iconos del sitio y recursos publicos ligeros.
+
+### Que no debe ir aqui
+
+- Lógica de negocio.
+- Consultas SQL.
+- Clases de core, modelos o middleware.
+- Vistas parciales que no formen parte de la interfaz servida por el navegador.
+
+### Por que css, js y otros assets van ahi
+
+- Porque el navegador necesita accederlos por URL publica.
+- Porque el servidor web solo deberia exponer archivos estaticos o el front controller.
+- Porque mantener los assets dentro de public simplifica cacheo, rutas relativas y despliegue.
+
+### Regla practica para el equipo
+
+- Si el archivo debe ser descargado por el navegador, va en public.
+- Si el archivo solo lo usa PHP para ejecutar la app, va fuera de public.
+
 ## Rutas, controladores, modelos y vistas
 
 ### Rutas en src/routes/web.php
@@ -267,6 +304,31 @@ Por que esta estrategia:
 
 - El control de acceso queda declarativo en cada ruta.
 - Se evita duplicar validaciones de rol dentro de cada controlador.
+
+### Que es un middleware
+
+Un middleware es una capa intermedia entre la peticion HTTP y el controlador final.
+
+Su trabajo es decidir una de estas cosas:
+
+- Dejar pasar la peticion al siguiente paso.
+- Bloquearla con una redireccion o un codigo de error.
+- Preparar contexto adicional antes de llegar al controlador.
+
+En este proyecto los middleware se usan para reglas transversales, no para logica de negocio.
+
+### Por que tenemos los middleware que tenemos
+
+- AuthMiddleware existe para asegurar que las rutas protegidas solo se ejecuten con una sesion valida y sincronizada con la base de datos.
+- RoleMiddleware existe para aplicar una verificacion simple y reutilizable de rol sin repetir la misma condicion en varios controladores.
+- AdminMiddleware existe para hacer explicita la proteccion de zonas administrativas.
+- TechnicianMiddleware existe para separar acceso tecnico de acceso de cliente y mantener legible el enrutado por rol.
+
+### Regla de uso para nuevos middleware
+
+- Usalo solo si la validacion aplica a varias rutas.
+- No metas consultas de negocio complejas si solo proteges acceso.
+- Si una regla solo afecta a una accion puntual, probablemente pertenece al controlador o al modelo, no al middleware.
 
 ## Validacion, sanitizacion y errores
 
@@ -516,11 +578,11 @@ Ejemplo:
 ```php
 class BillingMiddleware implements MiddlewareInterface
 {
-        public function handle(Request $request, callable $next)
-        {
-                // validacion previa
-                return $next($request);
-        }
+    public function handle(Request $request, callable $next)
+    {
+        // validacion previa
+        return $next($request);
+    }
 }
 ```
 
@@ -529,6 +591,33 @@ class BillingMiddleware implements MiddlewareInterface
 1. Extender switch de reglas en src/validators/Validator.php.
 2. Mantener mensajes consistentes por campo.
 3. Evitar logica de negocio compleja dentro del validador.
+
+## Convenciones de arquitectura
+
+### Donde va cada cosa
+
+- src/public: solo lo publico para el navegador.
+- src/controllers: orquestacion de casos de uso y respuesta HTTP.
+- src/models: acceso a datos y consultas.
+- src/views: presentacion.
+- src/core: primitivas compartidas del framework.
+- src/middleware: reglas transversales de acceso o contexto.
+- src/helpers: utilidades pequenas y reutilizables.
+
+### Que no deberia pasar
+
+- No poner SQL dentro de vistas.
+- No renderizar HTML desde modelos.
+- No poner logica de autorizacion repetida dentro de cada controlador.
+- No guardar assets ejecutables o scripts internos fuera de su carpeta correspondiente.
+- No mezclar la logica de render con la de negocio si puede evitarse.
+
+### Regla mental para respetar la arquitectura
+
+- Si responde al navegador, va en controlador o vista.
+- Si consulta o modifica datos, va en modelo.
+- Si valida acceso o contexto transversal, va en middleware.
+- Si solo ayuda a reutilizar una tarea pequena, va en helper o core segun su alcance.
 
 ## Limitaciones actuales y siguientes pasos
 
