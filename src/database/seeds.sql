@@ -1,7 +1,7 @@
 -- =============================================================
 -- SEEDS - Datos iniciales / de prueba
 -- Ejecutar DESPUÉS de migrations.sql
--- Contraseñas: todas son "password123" (hash bcrypt)
+-- Contraseñas: todas son "password" (hash bcrypt)
 -- =============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -35,7 +35,10 @@ INSERT INTO `users` (`nombre`, `correo`, `contrasena`, `telefono`, `rol`, `activ
  '77112233', 'cliente', 1),
 ('María González',  'maria@mail.com',
  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
- '77445566', 'cliente', 1);
+ '77445566', 'cliente', 1),
+('Luis Herrera',  'luis@mail.com',
+ '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+ '77557788', 'cliente', 1);
 
 -- Técnicos
 INSERT INTO `users` (`nombre`, `correo`, `contrasena`, `telefono`, `rol`, `activo`) VALUES
@@ -47,32 +50,38 @@ INSERT INTO `users` (`nombre`, `correo`, `contrasena`, `telefono`, `rol`, `activ
  '78003344', 'tecnico', 1);
 
 -- -------------------------------------------------------------
--- Perfiles de técnicos (IDs 4 y 5 = Roberto y Ana)
+-- Perfiles de técnicos
+-- ID 4 = Luis (cliente con solicitud pendiente)
+-- ID 5 = Roberto (técnico activo)
+-- ID 6 = Ana (técnico activo)
 -- -------------------------------------------------------------
 INSERT INTO `tecnico_perfiles`
-    (`user_id`, `zona_cobertura`, `descripcion`, `disponibilidad`, `estado`, `cancelaciones`) VALUES
-(4, 'San Salvador, Soyapango, Ilopango',
+     (`user_id`, `zona_cobertura`, `descripcion`, `disponibilidad`, `estado`, `cancelaciones`, `comentario_admin`) VALUES
+(5, 'San Salvador, Soyapango, Ilopango',
    'Electricista con 10 años de experiencia en instalaciones residenciales y comerciales.',
-   1, 'activo', 0),
-(5, 'Santa Ana, Metapán',
+    1, 'activo', 0, 'Validado'),
+(6, 'Santa Ana, Metapán',
    'Plomera certificada, especialista en tuberías PVC y cobre.',
-   1, 'activo', 0);
+    1, 'activo', 0, 'Validada'),
+(4, 'Apopa, Nejapa',
+    'Técnico general con experiencia en mantenimiento de hogar.',
+    1, 'pendiente', 0, 'Pendiente de revisión de documentos');
 
 -- -------------------------------------------------------------
 -- Categorías por técnico
 -- -------------------------------------------------------------
 INSERT INTO `tecnico_categorias` (`user_id`, `id_categoria`) VALUES
-(4, 1),   -- Roberto → Electricidad
-(4, 5),   -- Roberto → Aires Acondicionados
-(5, 2),   -- Ana     → Plomería
-(5, 8);   -- Ana     → Limpieza
+(5, 1),   -- Roberto → Electricidad
+(5, 5),   -- Roberto → Aires Acondicionados
+(6, 2),   -- Ana     → Plomería
+(6, 8);   -- Ana     → Limpieza
 
 -- -------------------------------------------------------------
 -- Solicitud de prueba
 -- -------------------------------------------------------------
 INSERT INTO `solicitudes`
     (`id_cliente`, `id_tecnico`, `titulo`, `descripcion`, `direccion`, `estado`) VALUES
-(2, 4,
+(2, 5,
  'Reparar tomacorriente dañado',
  'El tomacorriente de la sala dejó de funcionar después de un corto circuito.',
  'Col. Escalón, Calle La Mascota #45, San Salvador',
@@ -85,6 +94,6 @@ INSERT INTO `cotizaciones` (`id_solicitud`, `precio_estimado`, `descripcion`, `e
 -- Mensaje de prueba
 INSERT INTO `mensajes` (`id_solicitud`, `remitente_tipo`, `remitente_id`, `contenido`) VALUES
 (1, 'cliente', 2, 'Buenos días, ¿a qué hora podría venir?'),
-(1, 'tecnico', 4, 'Hola Carlos, puedo estar a las 10am. ¿Le parece bien?');
+(1, 'tecnico', 5, 'Hola Carlos, puedo estar a las 10am. ¿Le parece bien?');
 
 SET FOREIGN_KEY_CHECKS = 1;

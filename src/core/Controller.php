@@ -5,8 +5,9 @@ class Controller
     {
         $errors = $_SESSION['errors'] ?? [];
         $old = $_SESSION['old'] ?? [];
+        $success = $_SESSION['success'] ?? null;
 
-        unset($_SESSION['errors'], $_SESSION['old']);
+        unset($_SESSION['errors'], $_SESSION['old'], $_SESSION['success']);
 
         extract($data);
         ob_start();

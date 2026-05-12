@@ -22,6 +22,12 @@ class EjemploController extends Controller
 
     public function store(Request $request): void //Procesa el formulario de creación de solicitud
     {
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        if ($userId <= 0) {
+            header('Location: /login');
+            exit;
+        }
+
         $input = sanitize_array($request->all());
 
         Validator::validate($input, [
@@ -31,7 +37,7 @@ class EjemploController extends Controller
         ]);
 
         Ejemplo::create([
-            'id_cliente'  => 1, // hardcoded hasta tener auth
+            'id_cliente'  => $userId,
             'titulo'      => $input['titulo'],
             'descripcion' => $input['descripcion'],
             'direccion'   => $input['direccion'],

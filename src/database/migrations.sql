@@ -43,15 +43,26 @@ CREATE TABLE IF NOT EXISTS `tecnico_perfiles` (
     `zona_cobertura`           VARCHAR(255)  DEFAULT NULL,
     `descripcion`              TEXT          DEFAULT NULL,
     `disponibilidad`           TINYINT(1)   NOT NULL DEFAULT 1,
-    `estado`                   ENUM('pendiente','activo','suspendido') NOT NULL DEFAULT 'pendiente',
+    `estado`                   ENUM('pendiente','activo','suspendido','rechazado') NOT NULL DEFAULT 'pendiente',
     `cancelaciones`            INT           NOT NULL DEFAULT 0,
     `documentos_verificacion`  VARCHAR(500)  DEFAULT NULL,
+    `comentario_admin`         VARCHAR(500)  DEFAULT NULL,
+    `fecha_estado_cambio`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tecnico_perfiles_user` (`user_id`),
     CONSTRAINT `fk_tecnico_perfiles_user`
         FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `tecnico_perfiles`
+    MODIFY `estado` ENUM('pendiente','activo','suspendido','rechazado') NOT NULL DEFAULT 'pendiente';
+
+ALTER TABLE `tecnico_perfiles`
+    ADD COLUMN `comentario_admin` VARCHAR(500) DEFAULT NULL;
+
+ALTER TABLE `tecnico_perfiles`
+    ADD COLUMN `fecha_estado_cambio` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- -------------------------------------------------------------
 -- 4. tecnico_categorias  (tabla pivote)
