@@ -95,14 +95,40 @@ class User extends Model
         ]);
     }
 
-    public static function listTechnicianApplications(): array
-    {
-        $stmt = self::db()->query(
-            'SELECT tp.*, u.nombre, u.correo, u.telefono, u.rol, u.activo
-             FROM tecnico_perfiles tp
-             JOIN users u ON u.id = tp.user_id
-             ORDER BY tp.fecha_estado_cambio DESC, tp.id DESC'
-        );
+    public static function listTechnicianApplications(
+        string $search = '',
+        string $estado = '',
+        string $zona   = ''
+    ): array {
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]                 = '(u.nombre LIKE :search_nombre OR u.correo LIKE :search_correo)';
+            $params['search_nombre'] = '%' . $search . '%';
+            $params['search_correo'] = '%' . $search . '%';
+        }
+        if ($estado !== '') {
+            $where[]          = 'tp.estado = :estado';
+            $params['estado'] = $estado;
+        }
+        if ($zona !== '') {
+            $where[]        = 'tp.zona_cobertura LIKE :zona';
+            $params['zona'] = '%' . $zona . '%';
+        }
+
+        $sql = 'SELECT tp.*, u.nombre, u.correo, u.telefono, u.rol, u.activo
+                FROM tecnico_perfiles tp
+                JOIN users u ON u.id = tp.user_id';
+
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $sql .= ' ORDER BY tp.fecha_estado_cambio DESC, tp.id DESC';
+
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -171,6 +197,67 @@ class User extends Model
             'nombre' => $data['nombre'],
             'correo' => $data['correo'],
             'telefono' => $data['telefono'] ?? null,
+        ]);
+    }
+
+    public static function listAllUsers(string $search = '', string $status = ''): array
+    {
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]                 = '(nombre LIKE :search_nombre OR correo LIKE :search_correo)';
+            $params['search_nombre'] = '%' . $search . '%';
+            $params['search_correo'] = '%' . $search . '%';
+        }
+        if ($status === 'activo') {
+            $where[] = 'activo = 1';
+        } elseif ($status === 'inactivo') {
+            $where[] = 'activo = 0';
+        }
+
+        $sql = 'SELECT id, nombre, correo, telefono, rol, activo, fecha_registro FROM users';
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $sql .= ' ORDER BY fecha_registro DESC';
+
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public static function toggleActive(int $userId): void
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE users SET activo = IF(activo = 1, 0, 1) WHERE id = :id'
+        );
+        $stmt->execute(['id' => $userId]);
+    }
+
+    public static function deleteUser(int $userId): void
+    {
+        $stmt = self::db()->prepare('DELETE FROM users WHERE id = :id');
+        $stmt->execute(['id' => $userId]);
+    }
+
+    public static function adminUpdateUser(int $userId, array $data): void
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE users
+             SET nombre   = :nombre,
+                 correo   = :correo,
+                 telefono = :telefono,
+                 rol      = :rol
+             WHERE id = :id'
+        );
+
+        $stmt->execute([
+            'id'       => $userId,
+            'nombre'   => $data['nombre'],
+            'correo'   => $data['correo'],
+            'telefono' => $data['telefono'] ?? null,
+            'rol'      => $data['rol'],
         ]);
     }
 }

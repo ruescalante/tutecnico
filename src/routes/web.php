@@ -20,7 +20,14 @@ $router->get('/dashboard/cliente', 'DashboardController@client', ['AuthMiddlewar
 $router->get('/dashboard/tecnico', 'DashboardController@technician', ['AuthMiddleware', 'TechnicianMiddleware']);
 $router->get('/dashboard/tecnico/espera', 'DashboardController@technicianWaiting', ['AuthMiddleware', 'TechnicianMiddleware']);
 $router->get('/dashboard/admin', 'AdminController@index', ['AuthMiddleware', 'AdminMiddleware']);
+$router->get('/dashboard/admin/usuarios', 'AdminController@usuarios', ['AuthMiddleware', 'AdminMiddleware']);
+$router->get('/dashboard/admin/usuarios/:id/editar', 'AdminController@editUsuario', ['AuthMiddleware', 'AdminMiddleware']);
+$router->post('/dashboard/admin/usuarios/:id/editar', 'AdminController@updateUsuario', ['AuthMiddleware', 'AdminMiddleware']);
+$router->post('/dashboard/admin/usuarios/:id/suspender', 'AdminController@suspenderUsuario', ['AuthMiddleware', 'AdminMiddleware']);
+$router->post('/dashboard/admin/usuarios/:id/eliminar', 'AdminController@eliminarUsuario', ['AuthMiddleware', 'AdminMiddleware']);
+$router->get('/dashboard/admin/tecnicos', 'AdminController@tecnicos', ['AuthMiddleware', 'AdminMiddleware']);
 $router->post('/dashboard/admin/tecnicos/:id/estado', 'AdminController@updateTechnicianStatus', ['AuthMiddleware', 'AdminMiddleware']);
+$router->get('/dashboard/admin/solicitudes', 'AdminController@solicitudes', ['AuthMiddleware', 'AdminMiddleware']);
 $router->get('/perfil', 'ProfileController@index', ['AuthMiddleware']);
 $router->get('/perfil/editar', 'ProfileController@showEditForm', ['AuthMiddleware']);
 $router->post('/perfil/editar', 'ProfileController@updateProfile', ['AuthMiddleware']);

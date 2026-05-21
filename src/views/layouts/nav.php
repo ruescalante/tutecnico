@@ -1,6 +1,28 @@
 <?php
 $isLogged = !empty($_SESSION['user_id']);
 $role = $_SESSION['role'] ?? null;
+$_navCurrentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+function navIsActive(string $path): bool {
+    $current = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    return $path === '/' ? $current === '/' : str_starts_with($current, $path);
+}
+
+function navLinkClass(string $path): string {
+    return navIsActive($path)
+        ? 'text-primary dark:text-primary-fixed font-bold pb-1 transition-colors'
+        : 'text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1';
+}
+
+function bottomNavClass(string $path): string {
+    return navIsActive($path)
+        ? 'flex flex-col items-center justify-center text-primary dark:text-primary-fixed bg-primary-container/20 dark:bg-primary-container/10 rounded-xl p-2 active:scale-90 transition-transform duration-150 w-16'
+        : 'flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant p-2 hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant active:scale-90 transition-transform duration-150 rounded-xl w-16';
+}
+
+function bottomNavFill(string $path): string {
+    return navIsActive($path) ? "font-variation-settings: 'FILL' 1;" : '';
+}
 ?>
 
 <!-- TopNavBar Component -->
@@ -14,15 +36,15 @@ $role = $_SESSION['role'] ?? null;
 
         <!-- Navigation Links (Desktop) -->
         <nav class="hidden md:flex items-center gap-8">
-            <a href="/" class="text-primary dark:text-primary-fixed font-bold pb-1 transition-colors">Inicio</a>
+            <a href="/" class="<?= navLinkClass('/') ?>">Inicio</a>
 
             <?php if ($isLogged): ?>
-                <a href="/dashboard" class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1">Dashboard</a>
-                <a href="/perfil" class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1">Perfil</a>
-                <a href="/ejemplo" class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1">Solicitudes</a>
+                <a href="/dashboard" class="<?= navLinkClass('/dashboard') ?>">Dashboard</a>
+                <a href="/perfil" class="<?= navLinkClass('/perfil') ?>">Perfil</a>
+                <a href="/ejemplo" class="<?= navLinkClass('/ejemplo') ?>">Solicitudes</a>
             <?php else: ?>
-                <a href="/login" class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1">Ingresar</a>
-                <a href="/registro" class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors pb-1">Registrarse</a>
+                <a href="/login" class="<?= navLinkClass('/login') ?>">Ingresar</a>
+                <a href="/registro" class="<?= navLinkClass('/registro') ?>">Registrarse</a>
             <?php endif; ?>
         </nav>
 
@@ -52,10 +74,10 @@ $role = $_SESSION['role'] ?? null;
 
 <!-- BottomNavBar Component (Mobile Only) -->
 <nav class="bg-surface dark:bg-on-surface fixed bottom-0 w-full z-50 rounded-t-xl border-t border-outline-variant dark:border-outline shadow-[0_-4px_12px_0_rgba(0,0,0,0.08)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 md:hidden">
-    <button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed bg-primary-container/20 dark:bg-primary-container/10 rounded-xl p-2 active:scale-90 transition-transform duration-150 w-16">
-        <span class="material-symbols-outlined mb-1" data-icon="home" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+    <a href="/" class="<?= bottomNavClass('/') ?>">
+        <span class="material-symbols-outlined mb-1" data-icon="home" style="<?= bottomNavFill('/') ?>">home</span>
         <span class="font-label-md text-[10px] leading-tight font-medium">Inicio</span>
-    </button>
+    </a>
     <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant p-2 hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant active:scale-90 transition-transform duration-150 rounded-xl w-16">
         <span class="material-symbols-outlined mb-1" data-icon="search">search</span>
         <span class="font-label-md text-[10px] leading-tight font-medium">Buscar</span>
@@ -64,8 +86,8 @@ $role = $_SESSION['role'] ?? null;
         <span class="material-symbols-outlined mb-1" data-icon="build">build</span>
         <span class="font-label-md text-[10px] leading-tight font-medium">Servicios</span>
     </button>
-    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant p-2 hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant active:scale-90 transition-transform duration-150 rounded-xl w-16">
-        <span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+    <a href="/perfil" class="<?= bottomNavClass('/perfil') ?>">
+        <span class="material-symbols-outlined mb-1" data-icon="person" style="<?= bottomNavFill('/perfil') ?>">person</span>
         <span class="font-label-md text-[10px] leading-tight font-medium">Perfil</span>
-    </button>
+    </a>
 </nav>
