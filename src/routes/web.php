@@ -26,6 +26,7 @@ $router->get('/perfil/editar', 'ProfileController@showEditForm', ['AuthMiddlewar
 $router->post('/perfil/editar', 'ProfileController@updateProfile', ['AuthMiddleware']);
 $router->get('/perfil/solicitud-tecnico', 'ProfileController@showTechnicianForm', ['AuthMiddleware']);
 $router->post('/perfil/solicitud-tecnico', 'ProfileController@applyTechnician', ['AuthMiddleware']);
+#$router->post('/perfil/foto-trabajo/eliminar', 'ProfileController@deleteFotoTrabajo', ['AuthMiddleware']);
 
 #Ejemplo (protegidas con AuthMiddleware para pruebas)
 $router->get('/ejemplo', 'EjemploController@index', ['AuthMiddleware']);

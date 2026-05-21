@@ -45,27 +45,61 @@ class DashboardController extends Controller
         ]);
     }
 
+    // public function technician(): void
+    // {
+    //     $userId = (int) ($_SESSION['user_id'] ?? 0);
+    //     $profile = User::getTechnicianProfileByUserId($userId);
+    //     $status = $profile['estado'] ?? null;
+
+    //     if ($status !== 'activo') {
+    //         if ($status === 'pendiente') {
+    //             header('Location: /dashboard/tecnico/espera');
+    //             exit;
+    //         }
+
+    //         unset($_SESSION['user_id'], $_SESSION['role'], $_SESSION['user_name'], $_SESSION['intended_url']);
+    //         $_SESSION['errors'] = ['auth' => ['Tu cuenta técnica no puede acceder al panel']];
+    //         header('Location: /login');
+    //         exit;
+    //     }
+
+    //     $this->render('dashboard/technician/index', [
+    //         'pageTitle' => 'TuTecnico - Panel Técnico',
+    //         'profile' => $profile,
+    //     ]);
+    // }
+
     public function technician(): void
     {
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userId  = (int) ($_SESSION['user_id'] ?? 0);
         $profile = User::getTechnicianProfileByUserId($userId);
-        $status = $profile['estado'] ?? null;
+        $status  = $profile['estado'] ?? null;
 
         if ($status !== 'activo') {
             if ($status === 'pendiente') {
                 header('Location: /dashboard/tecnico/espera');
                 exit;
             }
-
             unset($_SESSION['user_id'], $_SESSION['role'], $_SESSION['user_name'], $_SESSION['intended_url']);
             $_SESSION['errors'] = ['auth' => ['Tu cuenta técnica no puede acceder al panel']];
             header('Location: /login');
             exit;
         }
 
+        $user         = User::findById($userId);
+        $categorias   = User::getCategoriasbyTecnico($userId);
+        $todasCategs  = User::getAllCategorias();
+        $fotosTrabajo = User::getFotosTrabajo($profile['id']);
+
+        // Armar nombres de categorías del técnico
+        $misCategsNombres = array_filter($todasCategs, fn($c) => in_array($c['id'], $categorias));
+
         $this->render('dashboard/technician/index', [
-            'pageTitle' => 'TuTecnico - Panel Técnico',
-            'profile' => $profile,
+            'pageTitle'        => 'TuTecnico - Panel Técnico',
+            'profile'          => $profile,
+            'user'             => $user,
+            'fotosTrabajo'     => $fotosTrabajo,
+            'misCategsNombres' => array_values($misCategsNombres),
         ]);
     }
 

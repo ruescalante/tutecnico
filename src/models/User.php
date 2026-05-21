@@ -160,17 +160,104 @@ class User extends Model
     {
         $stmt = self::db()->prepare(
             'UPDATE users
-             SET nombre = :nombre,
-                 correo = :correo,
-                 telefono = :telefono
-             WHERE id = :id'
+            SET nombre    = :nombre,
+                correo    = :correo,
+                telefono  = :telefono,
+                direccion = :direccion,
+                ciudad    = :ciudad,
+                pais      = :pais,
+                foto_perfil = :foto_perfil
+            WHERE id = :id'
         );
 
         $stmt->execute([
-            'id' => $userId,
-            'nombre' => $data['nombre'],
-            'correo' => $data['correo'],
-            'telefono' => $data['telefono'] ?? null,
+            'id'        => $userId,
+            'nombre'    => $data['nombre'],
+            'correo'    => $data['correo'],
+            'telefono'  => $data['telefono']  ?? null,
+            'direccion' => $data['direccion'] ?? null,
+            'ciudad'    => $data['ciudad']    ?? null,
+            'pais'      => $data['pais']      ?? 'El Salvador',
+            'foto_perfil' => $data['foto_perfil'] ?? null,
+        ]);
+    }
+
+    // Categorías
+    public static function getAllCategorias(): array
+    {
+        $stmt = self::db()->query('SELECT * FROM categorias ORDER BY nombre ASC');
+        return $stmt->fetchAll();
+    }
+
+    public static function getCategoriasbyTecnico(int $userId): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT id_categoria FROM tecnico_categorias WHERE user_id = :user_id'
+        );
+        $stmt->execute(['user_id' => $userId]);
+        return array_column($stmt->fetchAll(), 'id_categoria');
+    }
+
+    public static function syncCategoriasTecnico(int $userId, array $categoriaIds): void
+    {
+        $pdo = self::db();
+        $pdo->prepare('DELETE FROM tecnico_categorias WHERE user_id = :user_id')
+            ->execute(['user_id' => $userId]);
+
+        if (empty($categoriaIds)) return;
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO tecnico_categorias (user_id, id_categoria) VALUES (:user_id, :id_categoria)'
+        );
+        foreach ($categoriaIds as $catId) {
+            $stmt->execute(['user_id' => $userId, 'id_categoria' => (int) $catId]);
+        }
+    }
+
+    // Fotos de trabajos
+    public static function getFotosTrabajo(int $tecnicoPerfilId): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT * FROM foto_trabajos WHERE tecnico_perfil_id = :id ORDER BY fecha DESC'
+        );
+        $stmt->execute(['id' => $tecnicoPerfilId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function addFotoTrabajo(int $tecnicoPerfilId, string $url, ?string $descripcion): void
+    {
+        $stmt = self::db()->prepare(
+            'INSERT INTO foto_trabajos (tecnico_perfil_id, url, descripcion)
+            VALUES (:tecnico_perfil_id, :url, :descripcion)'
+        );
+        $stmt->execute([
+            'tecnico_perfil_id' => $tecnicoPerfilId,
+            'url'               => $url,
+            'descripcion'       => $descripcion,
+        ]);
+    }
+
+    public static function deleteFotoTrabajo(int $fotoId, int $tecnicoPerfilId): void
+    {
+        $stmt = self::db()->prepare(
+            'DELETE FROM foto_trabajos WHERE id = :id AND tecnico_perfil_id = :tecnico_perfil_id'
+        );
+        $stmt->execute(['id' => $fotoId, 'tecnico_perfil_id' => $tecnicoPerfilId]);
+    }
+
+    // actualizar tec
+    public static function updateTechnicianProfile(int $userId, array $data): void
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE tecnico_perfiles
+            SET descripcion    = :descripcion,
+                zona_cobertura = :zona_cobertura
+            WHERE user_id = :user_id'
+        );
+        $stmt->execute([
+            'user_id'        => $userId,
+            'descripcion'    => $data['descripcion'],
+            'zona_cobertura' => $data['zona_cobertura'],
         ]);
     }
 }
