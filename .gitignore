@@ -2,8 +2,15 @@
 # .gitignore
 # =============================================================
 
-# Variables de entorno 
+# Variables de entorno
+.env
 
+# Claude Code y documentación interna
+.claude/
+CLAUDE.md
+.AdminEspecificaciones/
+arquitectura-review.md
+context/
 
 # Dependencias (si en algún momento usas Composer)
 /vendor/
