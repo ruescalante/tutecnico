@@ -420,7 +420,7 @@ Errores no controlados:
 
 ### Conexion
 
-Archivo: src/config/database.php
+Archiv0: src/config/database.php
 
 - Implementa Database::getInstance() (Singleton PDO).
 - Lee variables de entorno: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS.
