@@ -1,5 +1,6 @@
-<div class="container">
-    <h1>Solicitud para ser Técnico</h1>
+<div class="container panel-cliente">
+    <h1 class="panel-greeting">Solicitud para ser Técnico </h1>
+    <p class="panel-sub">Completa el formulario para postularte como técnico en TuTécnico.</p>
 
     <?php if (!empty($success)): ?>
         <p class="success"><?= htmlspecialchars($success) ?></p>
@@ -9,15 +10,18 @@
         <p class="error"><?= htmlspecialchars($errors['auth'][0]) ?></p>
     <?php endif; ?>
 
-    <section class="card">
+    <section class="card solicitud-card">
         <?php if (!empty($techProfile)): ?>
-            <p>
-                Estado actual:
+            <div class="perfil-campo" style="margin-bottom:1rem">
+                <span class="field-label">Estado actual</span>
                 <span class="badge badge-<?= htmlspecialchars($techProfile['estado']) ?>">
                     <?= htmlspecialchars($techProfile['estado']) ?>
                 </span>
+            </div>
+            <p class="muted" style="margin-bottom:1rem">
+                 <?= htmlspecialchars($techProfile['comentario_admin'] ?? 'Sin comentarios') ?>
             </p>
-            <p class="muted">Comentario admin: <?= htmlspecialchars($techProfile['comentario_admin'] ?? 'Sin comentarios') ?></p>
+            <div class="card-divider"></div>
         <?php endif; ?>
 
         <form action="/perfil/solicitud-tecnico" method="POST" class="form">
