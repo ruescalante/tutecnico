@@ -53,6 +53,7 @@ class AuthController extends Controller
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['role'] = $user['rol'];
         $_SESSION['user_name'] = $user['nombre'];
+        $_SESSION['user_photo'] = $user['foto_perfil'];
 
         $this->redirectByRole((int) $user['id'], (string) $user['rol']);
     }
@@ -86,6 +87,7 @@ class AuthController extends Controller
         $_SESSION['user_id'] = $newUserId;
         $_SESSION['role'] = 'cliente';
         $_SESSION['user_name'] = $input['nombre'];
+        $_SESSION['user_photo'] = null;
         $_SESSION['success'] = 'Cuenta creada correctamente';
 
         header('Location: /dashboard/cliente');

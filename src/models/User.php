@@ -328,6 +328,182 @@ class User extends Model
         $stmt->execute(['id' => $userId]);
     }
 
+    // --- Perfil público del técnico ---
+
+    public static function getTechnicianPublicProfile(int $userId): array|false
+    {
+        $stmt = self::db()->prepare(
+            'SELECT u.id, u.nombre, u.correo, u.telefono, u.foto_perfil, u.ciudad, u.pais,
+                    tp.id AS perfil_id, tp.zona_cobertura, tp.descripcion, tp.disponibilidad,
+                    tp.estado, tp.cancelaciones
+             FROM users u
+             JOIN tecnico_perfiles tp ON tp.user_id = u.id
+             WHERE u.id = :id AND tp.estado = \'activo\'
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $userId]);
+        return $stmt->fetch();
+    }
+
+    public static function getTechnicianCategoriasConNombres(int $userId): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT c.id, c.nombre FROM categorias c
+             JOIN tecnico_categorias tc ON tc.id_categoria = c.id
+             WHERE tc.user_id = :user_id
+             ORDER BY c.nombre ASC'
+        );
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function getFotosTrabajoPorUserId(int $userId): array
+    {
+        $profile = self::getTechnicianProfileByUserId($userId);
+        if (!$profile) return [];
+        return self::getFotosTrabajo((int) $profile['id']);
+    }
+
+    public static function getResenasByTecnico(int $userId): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT cal.id AS calificacion_id, cal.puntuacion, cal.comentario, cal.fecha,
+                    s.id_cliente,
+                    u.nombre AS cliente_nombre, u.foto_perfil AS cliente_foto
+             FROM calificaciones cal
+             JOIN solicitudes s ON s.id = cal.id_solicitud
+             JOIN users u ON u.id = s.id_cliente
+             WHERE s.id_tecnico = :tecnico_id
+             ORDER BY cal.fecha DESC'
+        );
+        $stmt->execute(['tecnico_id' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function getResenaByClient(int $clienteId, int $tecnicoId): array|false
+    {
+        $stmt = self::db()->prepare(
+            'SELECT cal.id, cal.puntuacion, cal.comentario
+             FROM calificaciones cal
+             JOIN solicitudes s ON s.id = cal.id_solicitud
+             WHERE s.id_cliente = :cliente AND s.id_tecnico = :tecnico
+             LIMIT 1'
+        );
+        $stmt->execute(['cliente' => $clienteId, 'tecnico' => $tecnicoId]);
+        return $stmt->fetch();
+    }
+
+    public static function updateResena(int $calificacionId, int $clienteId, int $tecnicoId, int $puntuacion, ?string $comentario): void
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE calificaciones
+             SET puntuacion = :puntuacion, comentario = :comentario
+             WHERE id = :id
+               AND id_solicitud IN (
+                   SELECT id FROM solicitudes
+                   WHERE id_cliente = :cliente AND id_tecnico = :tecnico
+               )'
+        );
+        $stmt->execute([
+            'id'          => $calificacionId,
+            'puntuacion'  => $puntuacion,
+            'comentario'  => $comentario,
+            'cliente'     => $clienteId,
+            'tecnico'     => $tecnicoId,
+        ]);
+    }
+
+    public static function deleteResena(int $calificacionId, int $clienteId, int $tecnicoId): void
+    {
+        $stmt = self::db()->prepare(
+            'DELETE FROM calificaciones
+             WHERE id = :id
+               AND id_solicitud IN (
+                   SELECT id FROM solicitudes
+                   WHERE id_cliente = :cliente AND id_tecnico = :tecnico
+               )'
+        );
+        $stmt->execute([
+            'id'      => $calificacionId,
+            'cliente' => $clienteId,
+            'tecnico' => $tecnicoId,
+        ]);
+    }
+
+    public static function getAvgRating(int $userId): float
+    {
+        $stmt = self::db()->prepare(
+            'SELECT AVG(cal.puntuacion) AS promedio
+             FROM calificaciones cal
+             JOIN solicitudes s ON s.id = cal.id_solicitud
+             WHERE s.id_tecnico = :tecnico_id'
+        );
+        $stmt->execute(['tecnico_id' => $userId]);
+        $row = $stmt->fetch();
+        return round((float) ($row['promedio'] ?? 0), 1);
+    }
+
+    public static function countCompletedServices(int $userId): int
+    {
+        $stmt = self::db()->prepare(
+            'SELECT COUNT(*) AS total FROM solicitudes
+             WHERE id_tecnico = :id AND estado = \'completada\''
+        );
+        $stmt->execute(['id' => $userId]);
+        $row = $stmt->fetch();
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public static function getUnreviewedSolicitudForClient(int $clienteId, int $tecnicoId): array|false
+    {
+        $stmt = self::db()->prepare(
+            'SELECT s.id FROM solicitudes s
+             LEFT JOIN calificaciones cal ON cal.id_solicitud = s.id
+             WHERE s.id_cliente = :cliente_id
+               AND s.id_tecnico = :tecnico_id
+               AND s.estado = \'completada\'
+               AND cal.id IS NULL
+             LIMIT 1'
+        );
+        $stmt->execute(['cliente_id' => $clienteId, 'tecnico_id' => $tecnicoId]);
+        return $stmt->fetch();
+    }
+
+    public static function createResena(int $solicitudId, int $puntuacion, ?string $comentario): void
+    {
+        $stmt = self::db()->prepare(
+            'INSERT INTO calificaciones (id_solicitud, puntuacion, comentario)
+             VALUES (:id_solicitud, :puntuacion, :comentario)'
+        );
+        $stmt->execute([
+            'id_solicitud' => $solicitudId,
+            'puntuacion'   => $puntuacion,
+            'comentario'   => $comentario,
+        ]);
+    }
+
+    public static function hasCompletedServiceWith(int $clienteId, int $tecnicoId): bool
+    {
+        $stmt = self::db()->prepare(
+            'SELECT COUNT(*) AS total FROM solicitudes
+             WHERE id_cliente = :cliente AND id_tecnico = :tecnico AND estado = \'completada\''
+        );
+        $stmt->execute(['cliente' => $clienteId, 'tecnico' => $tecnicoId]);
+        $row = $stmt->fetch();
+        return ((int) ($row['total'] ?? 0)) > 0;
+    }
+
+    public static function verifySolicitudOwnership(int $solicitudId, int $clienteId, int $tecnicoId): bool
+    {
+        $stmt = self::db()->prepare(
+            'SELECT id FROM solicitudes
+             WHERE id = :id AND id_cliente = :cliente AND id_tecnico = :tecnico AND estado = \'completada\'
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $solicitudId, 'cliente' => $clienteId, 'tecnico' => $tecnicoId]);
+        return (bool) $stmt->fetch();
+    }
+
     public static function adminUpdateUser(int $userId, array $data): void
     {
         $stmt = self::db()->prepare(

@@ -35,6 +35,12 @@ $router->get('/perfil/solicitud-tecnico', 'ProfileController@showTechnicianForm'
 $router->post('/perfil/solicitud-tecnico', 'ProfileController@applyTechnician', ['AuthMiddleware']);
 #$router->post('/perfil/foto-trabajo/eliminar', 'ProfileController@deleteFotoTrabajo', ['AuthMiddleware']);
 
+# Perfil público de técnico
+$router->get('/tecnico/:id(int)', 'TecnicoController@show');
+$router->post('/tecnico/:id(int)/resena', 'TecnicoController@storeResena', ['AuthMiddleware']);
+$router->post('/tecnico/:id(int)/resena/editar', 'TecnicoController@editResena', ['AuthMiddleware']);
+$router->post('/tecnico/:id(int)/resena/eliminar', 'TecnicoController@deleteResena', ['AuthMiddleware']);
+
 #Ejemplo (protegidas con AuthMiddleware para pruebas)
 $router->get('/ejemplo', 'EjemploController@index', ['AuthMiddleware']);
 $router->post('/ejemplo', 'EjemploController@store', ['AuthMiddleware']);

@@ -39,6 +39,7 @@ class AuthMiddleware implements MiddlewareInterface
 
         $_SESSION['role'] = $dbUser['rol'];
         $_SESSION['user_name'] = $dbUser['nombre'];
+        $_SESSION['user_photo'] = $dbUser['foto_perfil'];
 
         return $next($request);
     }
