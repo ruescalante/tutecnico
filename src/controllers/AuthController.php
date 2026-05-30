@@ -88,9 +88,9 @@ class AuthController extends Controller
         $_SESSION['role'] = 'cliente';
         $_SESSION['user_name'] = $input['nombre'];
         $_SESSION['user_photo'] = null;
-        $_SESSION['success'] = 'Cuenta creada correctamente';
+        $_SESSION['success'] = 'Cuenta creada correctamente. ¡Bienvenido/a!';
 
-        header('Location: /dashboard/cliente');
+        header('Location: /');
         exit;
     }
 
@@ -128,7 +128,7 @@ class AuthController extends Controller
             $status = $profile['estado'] ?? null;
 
             if ($status === 'activo') {
-                header('Location: /dashboard/tecnico');
+                header('Location: /');
                 exit;
             }
 
@@ -143,7 +143,7 @@ class AuthController extends Controller
             exit;
         }
 
-        header('Location: /dashboard/cliente');
+        header('Location: /');
         exit;
     }
 

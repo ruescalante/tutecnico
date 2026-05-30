@@ -1,6 +1,7 @@
 <?php
 
 require_once BASE_PATH . '/models/User.php';
+require_once BASE_PATH . '/models/Solicitud.php';
 
 class DashboardController extends Controller
 {
@@ -34,14 +35,19 @@ class DashboardController extends Controller
             exit;
         }
 
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        $user = User::findById($userId);
-        $techProfile = User::getTechnicianProfileByUserId($userId);
+        $userId     = (int) ($_SESSION['user_id'] ?? 0);
+        $estadoFiltro = $_GET['estado'] ?? '';
+        $estadosValidos = ['pendiente', 'aceptada', 'en_progreso', 'completada', 'cancelada'];
+        if ($estadoFiltro !== '' && !in_array($estadoFiltro, $estadosValidos, true)) {
+            $estadoFiltro = '';
+        }
+
+        $solicitudes = Solicitud::findByCliente($userId, $estadoFiltro);
 
         $this->render('dashboard/client/index', [
-            'pageTitle' => 'TuTecnico - Panel Cliente',
-            'user' => $user,
-            'techProfile' => $techProfile,
+            'pageTitle'    => 'TuTecnico - Mis Solicitudes',
+            'solicitudes'  => $solicitudes,
+            'estadoFiltro' => $estadoFiltro,
         ]);
     }
 
@@ -86,21 +92,8 @@ class DashboardController extends Controller
             exit;
         }
 
-        $user         = User::findById($userId);
-        $categorias   = User::getCategoriasbyTecnico($userId);
-        $todasCategs  = User::getAllCategorias();
-        $fotosTrabajo = User::getFotosTrabajo($profile['id']);
-
-        // Armar nombres de categorías del técnico
-        $misCategsNombres = array_filter($todasCategs, fn($c) => in_array($c['id'], $categorias));
-
-        $this->render('dashboard/technician/index', [
-            'pageTitle'        => 'TuTecnico - Panel Técnico',
-            'profile'          => $profile,
-            'user'             => $user,
-            'fotosTrabajo'     => $fotosTrabajo,
-            'misCategsNombres' => array_values($misCategsNombres),
-        ]);
+        header('Location: /dashboard/tecnico/solicitudes');
+        exit;
     }
 
     public function technicianWaiting(): void

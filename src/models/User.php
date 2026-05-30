@@ -523,4 +523,46 @@ class User extends Model
             'rol'      => $data['rol'],
         ]);
     }
+
+    public static function getTopTechnicians(int $limit = 3): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT u.id, u.nombre, u.foto_perfil, tp.disponibilidad,
+                    COALESCE(ROUND(AVG(cal.puntuacion), 1), 0) AS avg_rating,
+                    COUNT(DISTINCT s.id) AS service_count,
+                    GROUP_CONCAT(DISTINCT cat.nombre ORDER BY cat.nombre SEPARATOR \', \') AS categorias
+             FROM users u
+             JOIN tecnico_perfiles tp ON tp.user_id = u.id
+             LEFT JOIN tecnico_categorias tc ON tc.user_id = u.id
+             LEFT JOIN categorias cat ON cat.id = tc.id_categoria
+             LEFT JOIN solicitudes s ON s.id_tecnico = u.id AND s.estado = \'completada\'
+             LEFT JOIN calificaciones cal ON cal.id_solicitud = s.id
+             WHERE u.rol = \'tecnico\' AND tp.estado = \'activo\' AND u.activo = 1
+             GROUP BY u.id, u.nombre, u.foto_perfil, tp.disponibilidad
+             ORDER BY avg_rating DESC, service_count DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public static function getLatestReviews(int $limit = 3): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT cal.puntuacion, cal.comentario,
+                    u_c.nombre AS cliente_nombre, u_c.foto_perfil AS cliente_foto,
+                    u_t.nombre AS tecnico_nombre
+             FROM calificaciones cal
+             JOIN solicitudes s ON s.id = cal.id_solicitud
+             JOIN users u_c ON u_c.id = s.id_cliente
+             JOIN users u_t ON u_t.id = s.id_tecnico
+             WHERE cal.comentario IS NOT NULL AND cal.comentario != \'\'
+             ORDER BY cal.fecha DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

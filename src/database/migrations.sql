@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `calificaciones` (
 CREATE TABLE IF NOT EXISTS `notificaciones` (
     `id`            INT      NOT NULL AUTO_INCREMENT,
     `user_id`       INT      NOT NULL,
-    `tipo`          ENUM('solicitud_nueva','solicitud_aceptada','solicitud_cancelada',
+    `tipo`          ENUM('solicitud_nueva','solicitud_aceptada','solicitud_cancelada','solicitud_completada',
                          'cotizacion_nueva','cotizacion_aceptada','cotizacion_rechazada',
                          'mensaje_nuevo','calificacion_nueva') NOT NULL,
     `referencia_id` INT      DEFAULT NULL,   -- ID del recurso relacionado
