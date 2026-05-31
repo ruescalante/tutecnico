@@ -2,6 +2,7 @@
 
 require_once BASE_PATH . '/models/User.php';
 require_once BASE_PATH . '/models/Solicitud.php';
+require_once BASE_PATH . '/models/Notificacion.php';
 
 class AdminController extends Controller
 {
@@ -181,6 +182,13 @@ class AdminController extends Controller
         }
 
         User::setTechnicianStatus($userId, $input['estado'], $input['comentario_admin'] ?? null);
+
+        if ($input['estado'] === 'activo') {
+            Notificacion::create($userId, 'solicitud_aceptada', $userId);
+        } elseif ($input['estado'] === 'rechazado' || $input['estado'] === 'suspendido') {
+            Notificacion::create($userId, 'solicitud_cancelada', $userId);
+        }
+
         $_SESSION['success'] = 'Estado técnico actualizado correctamente';
 
         header('Location: /dashboard/admin/tecnicos');

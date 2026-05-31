@@ -10,7 +10,9 @@ services:
     depends_on:
       - mysql
     env_file:
-      - .env                  
+      - .env
+    command: >
+      bash -c "chmod -R 777 /var/www/html/src/public/uploads && apache2-foreground"                  
 
   mysql:
     image: mysql:8.0

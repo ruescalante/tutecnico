@@ -3,6 +3,7 @@
 require_once BASE_PATH . '/middleware/AuthMiddleware.php';
 require_once BASE_PATH . '/middleware/AdminMiddleware.php';
 require_once BASE_PATH . '/middleware/TechnicianMiddleware.php';
+require_once BASE_PATH . '/middleware/ClientMiddleware.php';
 
 #Home
 $router->get('/', 'HomeController@index');
@@ -41,10 +42,23 @@ $router->post('/tecnico/:id(int)/resena', 'TecnicoController@storeResena', ['Aut
 $router->post('/tecnico/:id(int)/resena/editar', 'TecnicoController@editResena', ['AuthMiddleware']);
 $router->post('/tecnico/:id(int)/resena/eliminar', 'TecnicoController@deleteResena', ['AuthMiddleware']);
 
-#Ejemplo (protegidas con AuthMiddleware para pruebas)
-$router->get('/ejemplo', 'EjemploController@index', ['AuthMiddleware']);
-$router->post('/ejemplo', 'EjemploController@store', ['AuthMiddleware']);
-$router->get('/ejemplo/create', 'EjemploController@create', ['AuthMiddleware']);
-$router->get('/ejemplo/edit/:id', 'EjemploController@edit', ['AuthMiddleware']);
-$router->post('/ejemplo/:id', 'EjemploController@update', ['AuthMiddleware']);
-$router->post('/ejemplo/delete/:id', 'EjemploController@destroy', ['AuthMiddleware']);
+# Solicitudes — Cliente
+$router->get('/solicitudes/crear/:id(int)',                        'SolicitudController@create',      ['AuthMiddleware', 'ClientMiddleware']);
+$router->post('/solicitudes/crear',                                'SolicitudController@store',       ['AuthMiddleware', 'ClientMiddleware']);
+$router->get('/solicitudes/:id(int)',                              'SolicitudController@show',        ['AuthMiddleware']);
+$router->post('/solicitudes/:id(int)/cancelar',                    'SolicitudController@cancel',      ['AuthMiddleware']);
+$router->post('/solicitudes/:id(int)/cotizacion/aceptar',          'SolicitudController@acceptQuote', ['AuthMiddleware', 'ClientMiddleware']);
+$router->post('/solicitudes/:id(int)/cotizacion/rechazar',         'SolicitudController@rejectQuote',   ['AuthMiddleware', 'ClientMiddleware']);
+$router->post('/solicitudes/:id(int)/mensaje',                     'SolicitudController@sendMessage',   ['AuthMiddleware', 'ClientMiddleware']);
+
+# Dashboard Técnico — Solicitudes
+$router->get('/dashboard/tecnico/solicitudes',                     'SolicitudController@techIndex',  ['AuthMiddleware', 'TechnicianMiddleware']);
+$router->get('/dashboard/tecnico/solicitudes/:id(int)',            'SolicitudController@techShow',   ['AuthMiddleware', 'TechnicianMiddleware']);
+$router->post('/dashboard/tecnico/solicitudes/:id(int)/cotizar',   'SolicitudController@sendQuote',  ['AuthMiddleware', 'TechnicianMiddleware']);
+$router->post('/dashboard/tecnico/solicitudes/:id(int)/rechazar',   'SolicitudController@techReject',  ['AuthMiddleware', 'TechnicianMiddleware']);
+$router->post('/dashboard/tecnico/solicitudes/:id(int)/completar',  'SolicitudController@complete',      ['AuthMiddleware', 'TechnicianMiddleware']);
+$router->post('/dashboard/tecnico/solicitudes/:id(int)/mensaje',    'SolicitudController@techSendMessage', ['AuthMiddleware', 'TechnicianMiddleware']);
+
+# Notificaciones (AJAX)
+$router->get('/notificaciones/recientes',      'NotificacionController@getRecent',   ['AuthMiddleware']);
+$router->post('/notificaciones/marcar-leidas', 'NotificacionController@markAllRead', ['AuthMiddleware']);

@@ -6,6 +6,12 @@ $userName = $_SESSION['user_name'] ?? '';
 $userInitial = $userName ? strtoupper(mb_substr($userName, 0, 1)) : '?';
 $_navCurrentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+$unreadCount = 0;
+if ($isLogged) {
+    require_once BASE_PATH . '/models/Notificacion.php';
+    $unreadCount = Notificacion::getUnreadCount((int) $_SESSION['user_id']);
+}
+
 function navIsActive(string $path): bool {
     $current = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     return $path === '/' ? $current === '/' : str_starts_with($current, $path);
@@ -34,7 +40,6 @@ function navLinkClass(string $path): string {
             <?php if ($isLogged): ?>
                 <a href="/dashboard" class="<?= navLinkClass('/dashboard') ?>">Dashboard</a>
                 <a href="/perfil" class="<?= navLinkClass('/perfil') ?>">Perfil</a>
-                <a href="/ejemplo" class="<?= navLinkClass('/ejemplo') ?>">Solicitudes</a>
             <?php else: ?>
                 <a href="/login" class="<?= navLinkClass('/login') ?>">Ingresar</a>
                 <a href="/registro" class="<?= navLinkClass('/registro') ?>">Registrarse</a>
@@ -47,9 +52,31 @@ function navLinkClass(string $path): string {
             </button>
 
             <?php if ($isLogged): ?>
-                <button aria-label="Notifications" class="hidden md:flex p-2 text-on-surface-variant hover:text-primary dark:text-surface-variant dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-low dark:hover:bg-secondary-container rounded-full items-center justify-center transition-all duration-200 ease-in-out active:scale-95">
-                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                </button>
+                <div class="hidden md:block relative" id="notifWrapper">
+                    <button id="notifBtn" aria-label="Notificaciones" class="relative p-2 text-on-surface-variant hover:text-primary dark:text-surface-variant dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-low dark:hover:bg-secondary-container rounded-full flex items-center justify-center duration-200 ease-in-out active:scale-95">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <?php if ($unreadCount > 0): ?>
+                        <span id="notifBadge" class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                            <?= $unreadCount > 99 ? '99+' : $unreadCount ?>
+                        </span>
+                        <?php else: ?>
+                        <span id="notifBadge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none"></span>
+                        <?php endif; ?>
+                    </button>
+
+                    <div id="notifPanel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface dark:bg-on-surface border border-outline-variant dark:border-outline rounded-2xl shadow-2xl z-[300] overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant dark:border-outline">
+                            <span class="font-semibold text-on-surface dark:text-surface text-sm">Notificaciones</span>
+                            <button id="markAllReadBtn" class="text-xs text-primary dark:text-primary-fixed hover:underline font-medium">Marcar todas como leídas</button>
+                        </div>
+                        <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-outline-variant dark:divide-outline">
+                            <p class="text-center text-on-surface-variant text-sm py-8">Cargando...</p>
+                        </div>
+                        <div class="px-4 py-2 border-t border-outline-variant dark:border-outline text-center">
+                            <a href="/dashboard" class="text-xs text-primary dark:text-primary-fixed hover:underline">Ver dashboard</a>
+                        </div>
+                    </div>
+                </div>
             <?php endif; ?>
 
             <?php if ($isLogged): ?>
@@ -116,9 +143,6 @@ function navLinkClass(string $path): string {
             <a href="/perfil" class="flex items-center gap-3 px-4 py-3 rounded-xl <?= navIsActive('/perfil') ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant' ?> transition-colors">
                 <span class="material-symbols-outlined text-xl">person</span> Perfil
             </a>
-            <a href="/ejemplo" class="flex items-center gap-3 px-4 py-3 rounded-xl <?= navIsActive('/ejemplo') ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant' ?> transition-colors">
-                <span class="material-symbols-outlined text-xl">assignment</span> Solicitudes
-            </a>
             <?php else: ?>
             <a href="/login" class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant transition-colors">
                 <span class="material-symbols-outlined text-xl">login</span> Ingresar
@@ -156,5 +180,114 @@ function navLinkClass(string $path): string {
     if (closeBtn) closeBtn.addEventListener('click', closeMenu);
     if (backdrop) backdrop.addEventListener('click', closeMenu);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+}());
+
+(function () {
+    var btn         = document.getElementById('notifBtn');
+    var panel       = document.getElementById('notifPanel');
+    var list        = document.getElementById('notifList');
+    var badge       = document.getElementById('notifBadge');
+    var markAllBtn  = document.getElementById('markAllReadBtn');
+
+    if (!btn) return;
+
+    var isOpen = false;
+
+    function timeAgo(dateStr) {
+        var d = new Date(dateStr.replace(' ', 'T') + 'Z');
+        var diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+        if (diff < 60)    return 'ahora mismo';
+        if (diff < 3600)  return Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' h';
+        return Math.floor(diff / 86400) + ' d';
+    }
+
+    function renderItems(items) {
+        if (!items.length) {
+            list.innerHTML = '<p class="text-center text-on-surface-variant text-sm py-8">Sin notificaciones</p>';
+            return;
+        }
+        list.innerHTML = items.map(function (n) {
+            var unreadClass = n.leida
+                ? 'bg-transparent'
+                : 'bg-primary-container/20 dark:bg-primary/10';
+            return '<a href="' + n.url + '" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low dark:hover:bg-secondary-container transition-colors ' + unreadClass + '">' +
+                '<span class="material-symbols-outlined text-lg text-primary dark:text-primary-fixed mt-0.5 shrink-0">' + n.icono + '</span>' +
+                '<div class="flex-1 min-w-0">' +
+                    '<p class="text-sm text-on-surface dark:text-surface leading-snug">' + n.texto + '</p>' +
+                    '<p class="text-xs text-on-surface-variant dark:text-surface-variant mt-0.5">' + timeAgo(n.fecha) + '</p>' +
+                '</div>' +
+                (!n.leida ? '<span class="w-2 h-2 rounded-full bg-primary dark:bg-primary-fixed shrink-0 mt-1.5"></span>' : '') +
+            '</a>';
+        }).join('');
+    }
+
+    function updateBadge(count) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function loadNotifs() {
+        fetch('/notificaciones/recientes', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                renderItems(data.items);
+                updateBadge(data.count);
+                if (data.count > 0) {
+                    fetch('/notificaciones/marcar-leidas', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(function () { updateBadge(0); });
+                }
+            })
+            .catch(function () {
+                list.innerHTML = '<p class="text-center text-on-surface-variant text-sm py-8">Error al cargar</p>';
+            });
+    }
+
+    function openPanel() {
+        panel.classList.remove('hidden');
+        isOpen = true;
+        loadNotifs();
+    }
+
+    function closePanel() {
+        panel.classList.add('hidden');
+        isOpen = false;
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        isOpen ? closePanel() : openPanel();
+    });
+
+    document.addEventListener('click', function (e) {
+        if (isOpen && !panel.contains(e.target) && e.target !== btn) {
+            closePanel();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && isOpen) closePanel();
+    });
+
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            fetch('/notificaciones/marcar-leidas', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function () {
+                updateBadge(0);
+                loadNotifs();
+            });
+        });
+    }
 }());
 </script>

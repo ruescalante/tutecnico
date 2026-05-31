@@ -127,12 +127,33 @@
                         </div>
 
                         <div class="flex flex-col gap-3 w-full sm:w-auto items-end">
-                            <button disabled
-                                    class="bg-[#00796b] text-white w-full sm:w-48 px-6 py-3 rounded-lg font-label-md text-base font-semibold
-                                           opacity-60 cursor-not-allowed shadow-sm"
-                                    title="Disponible próximamente">
-                                Solicitar Servicio
-                            </button>
+                            <?php
+                                $srvUserId    = (int) ($_SESSION['user_id'] ?? 0);
+                                $srvUserRole  = $_SESSION['role'] ?? '';
+                                $srvEsCliente = ($srvUserRole === 'cliente');
+                                $srvEsPropio  = ($srvUserId > 0 && $srvUserId === (int) $tecnico['id']);
+                                $srvNoLogin   = ($srvUserId === 0);
+                            ?>
+                            <?php if ($srvEsCliente && !$srvEsPropio): ?>
+                                <a href="/solicitudes/crear/<?= (int) $tecnico['id'] ?>"
+                                   class="bg-[#00796b] text-white w-full sm:w-48 px-6 py-3 rounded-lg font-label-md text-base font-semibold
+                                          shadow-sm hover:bg-[#006458] transition-colors text-center active:scale-95">
+                                    Solicitar Servicio
+                                </a>
+                            <?php elseif ($srvNoLogin): ?>
+                                <a href="/login"
+                                   class="bg-[#00796b] text-white w-full sm:w-48 px-6 py-3 rounded-lg font-label-md text-base font-semibold
+                                          shadow-sm hover:bg-[#006458] transition-colors text-center active:scale-95">
+                                    Solicitar Servicio
+                                </a>
+                            <?php else: ?>
+                                <button disabled
+                                        class="bg-[#00796b] text-white w-full sm:w-48 px-6 py-3 rounded-lg font-label-md text-base font-semibold
+                                               opacity-50 cursor-not-allowed shadow-sm"
+                                        title="No disponible para tu rol">
+                                    Solicitar Servicio
+                                </button>
+                            <?php endif; ?>
                             <div class="flex justify-end gap-2 text-[#00796b]">
                                 <?php if ($correo): ?>
                                 <a href="mailto:<?= $correo ?>"
