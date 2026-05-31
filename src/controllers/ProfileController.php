@@ -61,7 +61,7 @@ class ProfileController extends Controller
         ]);
 
         $_SESSION['success'] = 'Tu solicitud para ser técnico fue enviada y está pendiente de validación';
-        header('Location: /dashboard/cliente');
+        header('Location: /perfil');
         exit;
     }
 

@@ -53,7 +53,7 @@
 
             <!-- Formulario -->
             <form action="/perfil/solicitud-tecnico" method="POST" class="flex flex-col gap-5">
-                <input type="hidden" name="_back_url" value="/perfil">
+                <input type="hidden" name="_back_url" value="/perfil/solicitud-tecnico">
 
                 <!-- Zona de cobertura -->
                 <div class="flex flex-col gap-1.5">
