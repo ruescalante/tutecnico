@@ -6,6 +6,37 @@ require_once BASE_PATH . '/helpers/sanitize.php';
 
 class TecnicoController extends Controller
 {
+    private const PER_PAGE = 8;
+
+    public function index(Request $request): void
+    {
+        $filters = [
+            'q'          => trim((string) $request->input('q', '')),
+            'zona'       => trim((string) $request->input('zona', '')),
+            'categorias' => array_values(array_filter(array_map('intval', (array) $request->input('categorias', [])))),
+            'disponible' => $request->input('disponible') ? 1 : 0,
+            'min_rating' => (float) $request->input('min_rating', 0),
+            'orden'      => (string) $request->input('orden', 'rating'),
+        ];
+
+        $total      = User::countTechnicians($filters);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $page       = min(max(1, (int) $request->input('page', 1)), $totalPages);
+        $offset     = ($page - 1) * self::PER_PAGE;
+
+        $this->render('tecnico/index', [
+            'layout'      => 'tailwind',
+            'pageTitle'   => 'Buscar Técnicos — TuTecnico',
+            'tecnicos'    => User::searchTechnicians($filters, self::PER_PAGE, $offset),
+            'categorias'  => User::getAllCategorias(),
+            'filters'     => $filters,
+            'total'       => $total,
+            'page'        => $page,
+            'totalPages'  => $totalPages,
+            'perPage'     => self::PER_PAGE,
+        ]);
+    }
+
     public function show(Request $request): void
     {
         $id = (int) $request->param('id', 0);

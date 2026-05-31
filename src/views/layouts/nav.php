@@ -36,6 +36,7 @@ function navLinkClass(string $path): string {
         
         <nav class="hidden md:flex items-center gap-8">
             <a href="/" class="<?= navLinkClass('/') ?>">Inicio</a>
+            <a href="/tecnicos" class="<?= navLinkClass('/tecnicos') ?>">Buscar Técnicos</a>
 
             <?php if ($isLogged): ?>
                 <a href="/dashboard" class="<?= navLinkClass('/dashboard') ?>">Dashboard</a>
@@ -135,6 +136,9 @@ function navLinkClass(string $path): string {
         <nav class="flex flex-col gap-1 px-4 py-4 flex-1 overflow-y-auto">
             <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl <?= navIsActive('/') ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant' ?> transition-colors">
                 <span class="material-symbols-outlined text-xl">home</span> Inicio
+            </a>
+            <a href="/tecnicos" class="flex items-center gap-3 px-4 py-3 rounded-xl <?= navIsActive('/tecnicos') ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant' ?> transition-colors">
+                <span class="material-symbols-outlined text-xl">search</span> Buscar Técnicos
             </a>
             <?php if ($isLogged): ?>
             <a href="/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl <?= navIsActive('/dashboard') ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-on-secondary-fixed-variant' ?> transition-colors">

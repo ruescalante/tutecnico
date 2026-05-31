@@ -565,4 +565,137 @@ class User extends Model
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    // --- Búsqueda pública de técnicos ---
+
+    /**
+     * Construye las cláusulas WHERE/HAVING y los binds a partir de los filtros.
+     * Como las prepared statements no usan emulación, cada placeholder es único.
+     *
+     * @return array{0: string[], 1: string[], 2: array<string, array{0: mixed, 1: int}>}
+     */
+    private static function buildTechnicianSearch(array $f): array
+    {
+        $where  = ["u.rol = 'tecnico'", "tp.estado = 'activo'", 'u.activo = 1'];
+        $having = [];
+        $binds  = [];
+
+        $q = trim((string) ($f['q'] ?? ''));
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+            $where[] = '(u.nombre LIKE :q1
+                         OR tp.zona_cobertura LIKE :q2
+                         OR u.ciudad LIKE :q3
+                         OR EXISTS (SELECT 1 FROM tecnico_categorias tcs
+                                    JOIN categorias cs ON cs.id = tcs.id_categoria
+                                    WHERE tcs.user_id = u.id AND cs.nombre LIKE :q4))';
+            $binds[':q1'] = [$like, \PDO::PARAM_STR];
+            $binds[':q2'] = [$like, \PDO::PARAM_STR];
+            $binds[':q3'] = [$like, \PDO::PARAM_STR];
+            $binds[':q4'] = [$like, \PDO::PARAM_STR];
+        }
+
+        $cats = array_values(array_filter(array_map('intval', (array) ($f['categorias'] ?? []))));
+        if ($cats) {
+            $placeholders = [];
+            foreach ($cats as $i => $catId) {
+                $key                  = ':cat' . $i;
+                $placeholders[]       = $key;
+                $binds[$key]          = [$catId, \PDO::PARAM_INT];
+            }
+            $where[] = 'EXISTS (SELECT 1 FROM tecnico_categorias tcf
+                                WHERE tcf.user_id = u.id
+                                  AND tcf.id_categoria IN (' . implode(', ', $placeholders) . '))';
+        }
+
+        $zona = trim((string) ($f['zona'] ?? ''));
+        if ($zona !== '') {
+            $where[]         = '(tp.zona_cobertura LIKE :zona1 OR u.ciudad LIKE :zona2)';
+            $binds[':zona1'] = ['%' . $zona . '%', \PDO::PARAM_STR];
+            $binds[':zona2'] = ['%' . $zona . '%', \PDO::PARAM_STR];
+        }
+
+        if (!empty($f['disponible'])) {
+            $where[] = 'tp.disponibilidad = 1';
+        }
+
+        $minRating = (float) ($f['min_rating'] ?? 0);
+        if ($minRating > 0) {
+            $having[]             = 'avg_rating >= :min_rating';
+            $binds[':min_rating'] = [$minRating, \PDO::PARAM_STR];
+        }
+
+        return [$where, $having, $binds];
+    }
+
+    public static function searchTechnicians(array $f, int $limit, int $offset): array
+    {
+        [$where, $having, $binds] = self::buildTechnicianSearch($f);
+
+        $orderMap = [
+            'rating'    => 'avg_rating DESC, review_count DESC, service_count DESC',
+            'servicios' => 'service_count DESC, avg_rating DESC',
+            'resenas'   => 'review_count DESC, avg_rating DESC',
+            'nombre'    => 'u.nombre ASC',
+        ];
+        $order = $orderMap[$f['orden'] ?? 'rating'] ?? $orderMap['rating'];
+
+        $sql = 'SELECT u.id, u.nombre, u.foto_perfil, u.ciudad, u.pais,
+                       tp.zona_cobertura, tp.disponibilidad, tp.descripcion,
+                       COALESCE(ROUND(AVG(cal.puntuacion), 1), 0) AS avg_rating,
+                       COUNT(DISTINCT cal.id) AS review_count,
+                       COUNT(DISTINCT CASE WHEN s.estado = \'completada\' THEN s.id END) AS service_count,
+                       GROUP_CONCAT(DISTINCT cat.nombre ORDER BY cat.nombre SEPARATOR \', \') AS categorias
+                FROM users u
+                JOIN tecnico_perfiles tp ON tp.user_id = u.id
+                LEFT JOIN tecnico_categorias tc ON tc.user_id = u.id
+                LEFT JOIN categorias cat ON cat.id = tc.id_categoria
+                LEFT JOIN solicitudes s ON s.id_tecnico = u.id
+                LEFT JOIN calificaciones cal ON cal.id_solicitud = s.id
+                WHERE ' . implode(' AND ', $where) . '
+                GROUP BY u.id, u.nombre, u.foto_perfil, u.ciudad, u.pais,
+                         tp.zona_cobertura, tp.disponibilidad, tp.descripcion';
+
+        if ($having) {
+            $sql .= ' HAVING ' . implode(' AND ', $having);
+        }
+
+        $sql .= ' ORDER BY ' . $order . ' LIMIT :limit OFFSET :offset';
+
+        $stmt = self::db()->prepare($sql);
+        foreach ($binds as $key => [$value, $type]) {
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public static function countTechnicians(array $f): int
+    {
+        [$where, $having, $binds] = self::buildTechnicianSearch($f);
+
+        $inner = 'SELECT u.id,
+                         COALESCE(ROUND(AVG(cal.puntuacion), 1), 0) AS avg_rating
+                  FROM users u
+                  JOIN tecnico_perfiles tp ON tp.user_id = u.id
+                  LEFT JOIN solicitudes s ON s.id_tecnico = u.id
+                  LEFT JOIN calificaciones cal ON cal.id_solicitud = s.id
+                  WHERE ' . implode(' AND ', $where) . '
+                  GROUP BY u.id';
+
+        if ($having) {
+            $inner .= ' HAVING ' . implode(' AND ', $having);
+        }
+
+        $sql  = 'SELECT COUNT(*) AS total FROM (' . $inner . ') sub';
+        $stmt = self::db()->prepare($sql);
+        foreach ($binds as $key => [$value, $type]) {
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->execute();
+        $row = $stmt->fetch();
+        return (int) ($row['total'] ?? 0);
+    }
 }

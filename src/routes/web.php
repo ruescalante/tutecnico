@@ -36,6 +36,9 @@ $router->get('/perfil/solicitud-tecnico', 'ProfileController@showTechnicianForm'
 $router->post('/perfil/solicitud-tecnico', 'ProfileController@applyTechnician', ['AuthMiddleware']);
 #$router->post('/perfil/foto-trabajo/eliminar', 'ProfileController@deleteFotoTrabajo', ['AuthMiddleware']);
 
+# Búsqueda pública de técnicos
+$router->get('/tecnicos', 'TecnicoController@index');
+
 # Perfil público de técnico
 $router->get('/tecnico/:id(int)', 'TecnicoController@show');
 $router->post('/tecnico/:id(int)/resena', 'TecnicoController@storeResena', ['AuthMiddleware']);
